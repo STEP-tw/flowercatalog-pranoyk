@@ -18,7 +18,7 @@ let logRequest = (req,res)=>{
   console.log(`${req.method} ${req.url}`);
 }
 
-let registered_users = [{userName:'pranoyk', name:'Pranoy'}, {userName:'kaskichandrakant', name:'Chandrakant'}];
+let registered_users = [{userName:'pranoyk', name:'Pranoy'}];
 
 let loadUser = (req,res)=>{
   let sessionid = req.cookies.sessionid;
@@ -114,8 +114,12 @@ app.post('/login',(req,res)=>{
 });
 
 app.get('/addComment.html',(req,res)=>{
+  // let userName = `${registered_users[0][name]}<br><br>`;
+  let addCommentPage = fs.readFileSync('./addComment.html','utf8');
   res.setHeader('Content-Type','text/html');
-  res.write(fs.readFileSync('./addComment.html'));
+  let finalPage = addCommentPage.replace(/<p><p>/,`${req.user.name}<br><br>`);
+  // res.write(`<p>Hello ${req.user.name}</p>`);
+  res.write(finalPage);
   res.end();
 })
 
