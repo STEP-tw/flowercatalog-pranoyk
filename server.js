@@ -84,6 +84,10 @@ app.post('/guestBook.html',(req,res)=> {
 app.post('/login.html',(req,res)=>{
   res.redirect('/addComment.html');
 })
+
+app.post('/addComments',(req,res)=>{
+  res.redirect('/addComment.html');
+})
 app.get('/logout',(req,res)=>{
   res.setHeader('Set-Cookie',[`loginFailed=false,Expires=${new Date(1).toUTCString()}`,`sessionid=0,Expires=${new Date(1).toUTCString()}`]);
   delete req.user.sessionid;
