@@ -1,6 +1,5 @@
 const http = require('http');
 const fs = require('fs');
-const qs = require('querystring');
 const timeStamp = require('./time.js').timeStamp;
 const WebApp = require('./webApp.js');
 const loginPage = fs.readFileSync('./login.html');
@@ -66,24 +65,6 @@ const serveStaticFile = (req,res)=>{
     res.write(readFile(filePath));
     res.end();
   }
-}
-
-const storeComments = function (query) {
-  let data = fs.readFileSync("./data/data.js", "utf8");
-  let commentData = data.split('= ')[1];
-  let modifiedData = JSON.parse(commentData);
-  modifiedData.unshift(query);
-  let comments = `var data = ${JSON.stringify(modifiedData)}`;
-  fs.writeFileSync('./data/data.js', comments);
-  res.redirect('/addComment.html');
-}
-
-const parseComments = function (req,res) {
-  req.on('data',(text)=>{
-    console.log('========================>>>>>>>>>>>>>');
-    let comment = qs.parse(text.toString());
-    storeComments(comment);
-  });
 }
 
 let redirectLoggedOutUserToLogin = (req,res)=>{
