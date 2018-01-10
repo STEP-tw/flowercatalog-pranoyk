@@ -3,6 +3,7 @@ const fs = require('fs');
 const timeStamp = require('./time.js').timeStamp;
 const WebApp = require('./webApp.js');
 const loginPage = fs.readFileSync('./login.html');
+const Comment = require('./lib/comment.js');
 
 let toS = o=>JSON.stringify(o,null,2);
 
@@ -50,32 +51,40 @@ const readFile = (filePath)=>{
 }
 
 const serveStaticFile = (req,res)=>{
-  console.log(`${req.method} ${req.url}`);
   let filePath = `public${req.url}`;
-  if(req.url=='/') {
-    res.write(fs.readFileSync('./public/index.html'));
-    res.end();
-  } else if(req.url.includes('/favicon')) {
-    res.statusCode=404;
-    res.end();
-  } else if(req.url.includes('/data')) {
-    res.write(fs.readFileSync('./data/data.js'));
-    res.end();
-  } else if(req.method=='GET' && isFile(filePath)){
+  if(req.method=='GET' && isFile(filePath)){
     res.write(readFile(filePath));
     res.end();
   }
 }
 
+let serveData = (req,res)=>{
+  if(req.url.includes('/data')) {
+    res.write(fs.readFileSync('./data/data.js'));
+    res.end();
+  }
+}
+
 let redirectLoggedOutUserToLogin = (req,res)=>{
-  if(req.urlIsOneOf(['/','/home','/logout']) && !req.user) res.redirect('/login.html');
+  if(req.urlIsOneOf(['/logout']) && !req.user) res.redirect('/login.html');
+}
+
+let redirectToHomePage = (req,res)=>{
+  if(req.url=='/') res.redirect('/flowerCatalog');
 }
 
 let app = WebApp.create();
 app.use(logRequest);
 app.use(loadUser);
+app.use(redirectToHomePage);
 app.use(serveStaticFile);
+app.use(serveData);
 app.use(redirectLoggedOutUserToLogin);
+
+app.get('/flowerCatalog',(req,res)=>{
+  res.write(fs.readFileSync('./public/index.html'));
+  res.end();
+})
 
 app.post('/guestBook.html',(req,res)=> {
   res.redirect('/login');
@@ -85,9 +94,6 @@ app.post('/login.html',(req,res)=>{
   res.redirect('/addComment.html');
 })
 
-app.post('/addComments',(req,res)=>{
-  res.redirect('/addComment.html');
-})
 app.get('/logout',(req,res)=>{
   res.setHeader('Set-Cookie',[`loginFailed=false,Expires=${new Date(1).toUTCString()}`,`sessionid=0,Expires=${new Date(1).toUTCString()}`]);
   delete req.user.sessionid;
@@ -114,13 +120,25 @@ app.post('/login',(req,res)=>{
 });
 
 app.get('/addComment.html',(req,res)=>{
-  // let userName = `${registered_users[0][name]}<br><br>`;
   let addCommentPage = fs.readFileSync('./addComment.html','utf8');
   res.setHeader('Content-Type','text/html');
   let finalPage = addCommentPage.replace(/<p><p>/,`${req.user.name}<br><br>`);
-  // res.write(`<p>Hello ${req.user.name}</p>`);
   res.write(finalPage);
   res.end();
+})
+
+app.post('/addComments',(req,res)=>{
+  let name = req.user.name;
+  let comment = req.body.comment;
+  let newComment = new Comment(name,comment);
+  let data = fs.readFileSync('./data/data.js','utf8');
+  let commentData = data.split('= ')[1];
+  let modifiedData = JSON.parse(commentData);
+  let finalComment = newComment.getComment();
+  modifiedData.unshift(finalComment);
+  finalComment = `var data = ${JSON.stringify(modifiedData)}`;
+  fs.writeFileSync('./data/data.js', finalComment);
+  res.redirect('/addComment.html');
 })
 
 const PORT = 5050;

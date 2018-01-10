@@ -1,6 +1,8 @@
 const getComments = function () {
   let comments = '';
   data.forEach(feedback=>{
+    comments+=feedback['date']+' ';
+    comments+=feedback['time']+' ';
     comments+=feedback['name']+' ';
     comments+=feedback['comment']+' ';
     comments=`${comments} \n`;

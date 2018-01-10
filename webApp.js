@@ -9,7 +9,7 @@ const accumulate = (o,kv)=> {
   o[kv.key] = kv.value;
   return o;
 };
-const parseBody = text=> text && text.split('&').map(toKeyValue).reduce(accumulate,{}) || {};
+const parseBody = text=> qs.parse(text) || {};
 let redirect = function(path){
   console.log(`redirecting to ${path}`);
   this.statusCode = 302;
@@ -49,22 +49,7 @@ const use = function(handler){
 let urlIsOneOf = function(urls){
   return urls.includes(this.url);
 }
-const storeComments = function (query) {
-  let data = fs.readFileSync("./data/data.js", "utf8");
-  let commentData = data.split('= ')[1];
-  let modifiedData = JSON.parse(commentData);
-  modifiedData.unshift(query);
-  let comments = `var data = ${JSON.stringify(modifiedData)}`;
-  fs.writeFileSync('./data/data.js', comments);
-}
 
-const parseComments = function (req,res) {
-  req.on('data',(text)=>{
-    console.log('========================>>>>>>>>>>>>>');
-    let comment = qs.parse(text.toString());
-    storeComments(comment);
-  });
-}
 const main = function(req,res){
   res.redirect = redirect.bind(res);
   req.urlIsOneOf = urlIsOneOf.bind(req);
@@ -81,7 +66,7 @@ const main = function(req,res){
     if(res.finished) return;
     invoke.call(this,req,res);
   });
-  if(req.url=='/addComments'&& req.method=='POST') parseComments(req,res);
+
 };
 
 let create = ()=>{
