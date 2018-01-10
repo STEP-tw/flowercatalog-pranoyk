@@ -19,7 +19,7 @@ let logRequest = (req,res)=>{
   console.log(`${req.method} ${req.url}`);
 }
 
-let registered_users = [{userName:'pranoyk', name:'Pranoy'}];
+let registered_users = [{userName:'pranoyk', name:'Pranoy'},{userName:'pavanigbn', name:'Pavani'}];
 
 let loadUser = (req,res)=>{
   let sessionid = req.cookies.sessionid;
@@ -90,10 +90,6 @@ app.post('/guestBook.html',(req,res)=> {
   res.redirect('/login');
 });
 
-app.post('/login.html',(req,res)=>{
-  res.redirect('/addComment.html');
-})
-
 app.get('/logout',(req,res)=>{
   res.setHeader('Set-Cookie',[`loginFailed=false,Expires=${new Date(1).toUTCString()}`,`sessionid=0,Expires=${new Date(1).toUTCString()}`]);
   delete req.user.sessionid;
@@ -110,7 +106,7 @@ app.post('/login',(req,res)=>{
   let user = registered_users.find(u=>u.userName==req.body.userName);
   if(!user) {
     res.setHeader('Set-Cookie',`logInFailed=true`);
-    res.redirect('/login.html');
+    res.redirect('/login');
     return;
   }
   let sessionid = new Date().getTime();
